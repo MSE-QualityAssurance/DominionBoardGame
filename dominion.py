@@ -7,10 +7,34 @@ class Card:
         self.card_type = card_type
         self.value = value  # For Treasure cards
 
-    def effect(self, player, game):
-        # Example: Copper card adds coins
-        if self.name == 'Copper':
-            player.coins += 1
+    if self.card_type == 'Treasure':
+            player.coins += self.value
+
+        elif self.card_type == 'Action':
+            if self.name == 'Smithy':
+                for _ in range(3):
+                    player.draw_card()
+            elif self.name == 'Village':
+                player.draw_card()
+                player.actions += 2
+            elif self.name == 'Market':
+                player.draw_card()
+                player.actions += 1
+                player.buys += 1
+                player.coins += 1
+            elif self.name == 'Laboratory':
+                for _ in range(2):
+                    player.draw_card()
+                player.actions += 1
+            elif self.name == 'Witch':
+                for _ in range(2):
+                    player.draw_card()
+                # Here, you would add the logic for other players to gain a Curse card.
+                # This can be complex as it involves interacting with other players' decks.
+                for other_player in game.players:
+                    if other_player != player:
+                        # Assume a method to gain a Curse card
+                        other_player.gain_curse_card(game)
 
 
 class Player:
