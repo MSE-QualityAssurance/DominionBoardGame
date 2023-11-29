@@ -126,7 +126,35 @@ class DominionGame:
         self.trash = []
 
     def setup_game(self):
-        pass
+        # Initialize Supply
+        self.init_supply()
+
+        # Setup Players
+        for player in self.players:
+            self.setup_player_deck(player)
+            player.draw_hand()
+
+    def init_supply(self):
+        # Add basic cards to the supply
+        self.supply["Copper"] = [Card("Copper", 0, "Treasure", 1) for _ in range(60)]
+        self.supply["Silver"] = [Card("Silver", 3, "Treasure", 2) for _ in range(40)]
+        self.supply["Gold"] = [Card("Gold", 6, "Treasure", 3) for _ in range(30)]
+
+        self.supply["Estate"] = [Card("Estate", 2, "Victory", 1) for _ in range(24)]
+        self.supply["Duchy"] = [Card("Duchy", 5, "Victory", 3) for _ in range(12)]
+        self.supply["Province"] = [Card("Province", 8, "Victory", 6) for _ in range(12)]
+
+        # Add a few basic Kingdom cards
+        # Example: Smithy - Costs 4, no immediate value, action effect to be defined
+        self.supply["Smithy"] = [Card("Smithy", 4, "Action") for _ in range(10)]
+
+        # Additional Kingdom cards can be added here
+
+    def setup_player_deck(self, player):
+        # Each player starts with 7 Coppers and 3 Estates
+        player.deck = [Card("Copper", 0, "Treasure", 1) for _ in range(7)] + \
+                      [Card("Estate", 2, "Victory", 1) for _ in range(3)]
+        random.shuffle(player.deck)
 
     def play_round(self):
         for player in self.players:
@@ -135,17 +163,70 @@ class DominionGame:
             player.end_turn()
 
     def play_turn(self, player):
-        # Implement the logic for a player's turn
-        pass
+        # Action Phase
+        self.action_phase(player)
+
+        # Buy Phase
+        self.buy_phase(player)
+
+        # Cleanup Phase
+        self.cleanup_phase(player)
+
+    def action_phase(self, player):
+        # Players can play any number of Action cards (subject to available actions)
+        for card in player.hand:
+            if card.card_type == "Action" and player.actions > 0:
+                player.play_action_card(card)
+                player.actions -= 1
+
+    def buy_phase(self, player):
+        # Play all Treasure cards in hand
+        player.play_treasure_cards()
+
+        # Player can buy cards from the supply (subject to available buys and coins)
+        for _ in range(player.buys):
+            # Implement logic to choose and buy a card
+            # Example: if player.coins >= cost_of_card and card in supply:
+            #             player.buy_card(card)
+            pass
+
+    def cleanup_phase(self, player):
+        # Discard hand and draw new hand
+        player.discard_pile.extend(player.hand)
+        player.hand = []
+        player.draw_hand()
+
+        # Reset actions, buys, and coins for the next turn
+        player.actions = 1
+        player.buys = 1
+        player.coins = 0
 
     def play_game(self):
         pass
 
     def check_game_end(self):
-        pass
+        # Check if the Province pile is empty
+        if not self.supply["Province"]:
+            return True
+
+        # Check if any three supply piles are empty
+        empty_piles = sum(1 for pile in self.supply.values() if not pile)
+        if empty_piles >= 3:
+            return True
+
+        return False
 
     def calculate_scores(self):
-        pass
+        player_scores = {}
+        for player in self.players:
+            score = 0
+            all_cards = player.deck + player.discard_pile + player.hand
+            for card in all_cards:
+                if card.card_type == "Victory":
+                    score += card.value
+            player_scores[player.name] = score
+
+        return player_scores
 
 def main():
     players = [Player("Alice"), Player("Bob")]
